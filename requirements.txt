@@ -1,0 +1,12 @@
+beautifulsoup4==4.11.2
+pandas
+numpy
+bs4
+pymongo==4.5.0
+SQLAlchemy==2.0.30
+mysql-connector-python==8.0.27
+psycopg2-binary
+# .env files
+pytz==2021.3
+cryptography==44.0.0
+openpyxl
