@@ -10,3 +10,7 @@ psycopg2-binary
 pytz==2021.3
 cryptography==44.0.0
 openpyxl
+fastapi
+uvicorn
+seaborn
+itsdangerous
