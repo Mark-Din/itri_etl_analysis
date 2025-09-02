@@ -20,7 +20,7 @@ from routers.session_manager import sessions, connections
 # Custom local imports
 from common import initlog
 from Visualization import visualization_page
-
+from mysql_insertion import mysql_insertion
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -73,7 +73,7 @@ label_numeric_cols = ['108產量',
 
 class Table(str, Enum):
     label = "label"
-    grade = "grade"
+    grade = "grading"
 
 TABLE_COLS = {
     Table.label: label_numeric_cols,
@@ -84,7 +84,7 @@ TABLE_COLS = {
 def get_file(
     table : str
 ):
-    if table == 'label':
+    if table.value == 'label':
         file = '已登錄產品之細項與核准項目 (溫熱型開飲機_ALL)-110_標註顯示欄位.xlsx'
     else:
         file = '溫熱型開飲機節能標章產品規格(含108-110年產銷量)_標註必要欄位.xlsx'
@@ -115,7 +115,7 @@ def get_options(table: Table):
 
 @router.get("/get_bubble_chart/")
 def get_chart_data(
-    table: Table = Query(..., description="label or grade"),
+    table: Table = Query(..., description="label or grading"),
     x: str = Query(..., description="X-axis column name"),
     y: str = Query(..., description="Y-axis column name"),
 ):
@@ -227,17 +227,14 @@ def energy_preview(req: PreviewReq):
         except Exception as e:
             raise HTTPException(400, f"公式解析/計算失敗: {e}")
 
-        # out = df.copy()
-        # out[req.output_col] = result
+        df['power_saving_result'] = result
 
-        return {'result':result.tolist()}
+        row_count = mysql_insertion(df, f'power_saving_result_{req.table.value}')
+
+        if row_count:
+            return JSONResponse(content= {'result': f"data saved row_count : [{row_count}]"})
         # 彙總與預覽
-        total = float(np.nansum(result))
-        preview_cols = [c for c in [req.model_col, req.sales_col, req.benchmark_col, req.output_col] if c]
-        preview = out[preview_cols].head(req.sample).to_dict(orient="records")
 
-
-        return 
     except Exception as e:
         logger.error(f'Something wrong {e}', exc_info=True)
 
