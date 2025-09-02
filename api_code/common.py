@@ -30,7 +30,7 @@ def initlog(logName):
         
         # Add handlers to the logger
         logger.addHandler(file_handler)
-        # logger.addHandler(console_handler)
+        logger.addHandler(console_handler)
         
         # Set the logger level
         logger.setLevel(logging.INFO)
