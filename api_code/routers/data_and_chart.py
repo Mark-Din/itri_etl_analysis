@@ -98,13 +98,23 @@ def get_file(
 
 @router.get("/sales_diff", response_class=HTMLResponse)
 def get_file_types(
-    table :str = Table,
+    table :Table = Query(..., description="label or grading"),
     percent: Annotated[float, Query(gt=0, lt=100)] = 10,
     year: Annotated[int, Query(gt=2000, lt=2100)] = datetime.now().year,
 ):
+    try:    
+        if os.path.isdir('./output') == False:
+            os.mkdir('./output')
 
-    df = get_file(table)
-    pass
+        df = get_file(table)
+
+        df_diff = df[(df['109銷售量'] - df['108銷售量'] )/ 100 < percent][['申請序號', '標章公司', '合約號', '類別名稱', '型號', '產地', '測試單位', '109銷售量', '108銷售量']]
+
+        for corp in df_diff['標章公司'].unique():
+
+            df_diff[df_diff['標章公司'] == corp ].to_excel(f'./output/{corp}.xlsx', index = False)
+    except Exception as e:
+        logger.error(f'Error on diff sales {e}', exc_info=True)
 
 
 @router.get("/options/{table}")
