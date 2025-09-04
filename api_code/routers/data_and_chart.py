@@ -89,7 +89,7 @@ def get_file(
     else:
         file = '溫熱型開飲機節能標章產品規格(含108-110年產銷量)_標註必要欄位.xlsx'
 
-    df = pd.read_excel(f'D:/markding_git/itri_etl_analysis/api_code/uploaded_files/{file}')
+    df = pd.read_excel(f'D:/markding_git/itri_etl_analysis/fwdsampledata/{file}')
 
     logger.info(f'df : {df.head()}')
 
@@ -103,8 +103,8 @@ def get_file_types(
     year: Annotated[int, Query(gt=2000, lt=2100)] = datetime.now().year,
 ):
     try:    
-        if os.path.isdir('./output') == False:
-            os.mkdir('./output')
+        if os.path.isdir('D:/markding_git/itri_etl_analysis/api_code/output/output') == False:
+            os.mkdir('D:/markding_git/itri_etl_analysis/api_code/output/output')
 
         df = get_file(table)
 
@@ -181,14 +181,16 @@ def energy_preview(req: PreviewReq):
     """
     Example:
     {
-    "table":"label",
-    "sales_col":"109銷售量",
-    "benchmark_col":{"type":"value","value":1000},
-    "formula":"(${sales} - ${benchmark_col}) * ${保溫功率(W)} / 1000",
-    "params":{"功率W":"保溫功率(W)"},
-    "output_col":"節電結果_kWh",
-    "sample":5
-    }   
+    "table": "grading",
+    "sales_col": "110銷售量",
+    "benchmark_col": "溫熱型開飲機節能標章能源耗用基準(E)(kWh/24h)",
+    "benchmark_col2": "保溫功率(W)",
+    "formula": "(sales_col - benchmark_col) * benchmark_col2 / 1000",
+    "output_col": "節電結果_kWh",
+    "sample": 10,
+    "na_policy": "skip"
+    }
+
     """
 
     try:
@@ -197,7 +199,7 @@ def energy_preview(req: PreviewReq):
         
         need = {req.sales_col, req.benchmark_col, *req.params.values()}
         # print('need========', need)
-        # print('df.columns========', df.columns)
+        print('df.columns========', df.columns)
 
         missing = [c for c in need if c not in df.columns]
         if missing:
@@ -237,9 +239,9 @@ def energy_preview(req: PreviewReq):
         except Exception as e:
             raise HTTPException(400, f"公式解析/計算失敗: {e}")
 
-        df['power_saving_result'] = result
+        df['power_saving_result'] = np.round(result, 2)
 
-        row_count = mysql_insertion(df, f'power_saving_result_{req.table.value}')
+        row_count = mysql_insertion(df, f'power_saving_result')
 
         if row_count:
             return JSONResponse(content= {'result': f"data saved row_count : [{row_count}]"})
@@ -248,13 +250,3 @@ def energy_preview(req: PreviewReq):
     except Exception as e:
         logger.error(f'Something wrong {e}', exc_info=True)
 
-
-{
-  "table":"label",
-  "sales_col":"109銷售量",
-  "benchmark_col":{"type":"value","name":"溫熱型開飲機節能標章能源耗用基準(E)(kWh/24h)"},
-  "formula":"(${sales} - ${benchmark_col}) * ${保溫功率(W)} / 1000",
-  "params":{"功率W":"保溫功率(W)"},
-  "output_col":"節電結果_kWh",
-  "sample":5
-}

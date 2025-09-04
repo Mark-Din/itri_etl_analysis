@@ -214,3 +214,6 @@ __marimo__/
 *.xlsx 
 *.xls
 *.csv
+
+# quickreport
+*reporting/

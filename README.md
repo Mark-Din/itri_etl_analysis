@@ -35,3 +35,9 @@ backup_sql_concord_smb.sh  config.sh  config.sh.enc  encrypt_pass.sh
 
 10 4 * * * cd /opt/penta_db_backup && ./deleting_backup.sh >> /var/lib/backupFile/procedure_log.log 2>&1
 
+## Mysql backup command
+docker exec -i mysql-business-only mysqldump -u root -p!QAZ2wsx --all-databases > ./itri_green_demo.sql
+## Mongo backup command
+
+
+docker exec quickreport_container mongorestore --verbose --drop /app/reporting
